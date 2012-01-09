@@ -11,7 +11,7 @@
 @synthesize traceExecution;
 
 + (id)databaseWithPath:(NSString*)aPath {
-    return [[[self alloc] initWithPath:aPath] autorelease];
+    return [[self alloc] initWithPath:aPath];
 }
 
 - (id)initWithPath:(NSString*)aPath {
@@ -36,12 +36,6 @@
 
 - (void)dealloc {
     [self close];
-    
-    [openResultSets release];
-    [cachedStatements release];
-    [databasePath release];
-    
-    [super dealloc];
 }
 
 + (NSString*)sqliteLibVersion {
@@ -141,7 +135,7 @@
 
 - (void)closeOpenResultSets {
     //Copy the set so we don't get mutation errors
-    NSSet *resultSets = [[openResultSets copy] autorelease];
+    NSSet *resultSets = [openResultSets copy];
     
     NSEnumerator *e = [resultSets objectEnumerator];
     NSValue *returnedResultSet = nil;
@@ -168,7 +162,7 @@
     query = [query copy]; // in case we got handed in a mutable string...
     [statement setQuery:query];
     [cachedStatements setObject:statement forKey:query];
-    [query release];
+    query = nil;
 }
 
 
@@ -539,8 +533,6 @@
         return nil;
     }
     
-    [statement retain]; // to balance the release below
-    
     if (!statement) {
         statement = [[FMStatement alloc] init];
         [statement setStatement:pStmt];
@@ -557,8 +549,6 @@
     [openResultSets addObject:openResultSet];
     
     statement.useCount = statement.useCount + 1;
-    
-    [statement release];    
     
     [self setInUse:NO];
     
@@ -750,8 +740,6 @@
         [cachedStmt setStatement:pStmt];
         
         [self setCachedStatement:cachedStmt forQuery:sql];
-        
-        [cachedStmt release];
     }
     
     if (cachedStmt) {
@@ -891,8 +879,6 @@
 
 - (void)dealloc {
     [self close];
-    [query release];
-    [super dealloc];
 }
 
 - (void)close {
